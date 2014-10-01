@@ -1,0 +1,12 @@
+--- wp-content/plugins/woocommerce-orig/includes/api/v1/class-wc-api-authentication.php 2014-09-25 02:45:54.000000000 +0000
++++ wp-content/plugins/woocommerce/includes/api/v1/class-wc-api-authentication.php      2014-10-01 07:53:29.841340924 +0000
+@@ -205,7 +205,8 @@
+                $base_request_uri = rawurlencode( untrailingslashit( get_woocommerce_api_url( '' ) ) . WC()->api->server->path );
+
+                // get the signature provided by the consumer and remove it from the parameters prior to checking the signature
+-               $consumer_signature = rawurldecode( $params['oauth_signature'] );
++               //Replace spaces with a plus
++               $consumer_signature = str_replace(" ", "+", rawurldecode( $params['oauth_signature'] ));
+                unset( $params['oauth_signature'] );
+
+                // remove filters and convert them from array to strings to void normalize issues

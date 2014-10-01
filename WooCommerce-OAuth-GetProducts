@@ -1,0 +1,57 @@
+
+function loadData(data){
+  var dataAll = JSON.parse(data);
+  Logger.log(dataAll.products);
+  var sheet = SpreadsheetApp.getActiveSheet();
+  for(i=0; i<dataAll.products.length; i++){
+    var dataRow=dataAll.products[i];
+    Logger.log(dataRow);
+    sheet.appendRow([dataRow.title, dataRow.price, dataRow.description]);
+  }
+}
+function addProduct(){
+  var consumerKey = 'YOUR_CONSUMER_KEY'; // Get Consumer Key from Woocommerce
+  var consumerSecret = 'YOUR_CONSUMER_SECRET'; // Get Consumer Secret from Woocommerce
+  var host="YOUR_HOST"; //The site where Woocommerce is hosted
+  
+  var baseurl="http://"+host+"/wordpress/wc-api/v1/"; //The WooCommerce api baseurl
+  var endpoints="products";
+  var oauth_signaturemethod="HMAC-SHA256";
+  var oauth_timestamp=Math.round(new Date().getTime()/1000);
+  var oauth_nounce=Math.round(Math.random()*100000);
+
+  var str="GET&"+encodeURIComponent(baseurl+endpoints)+"&"+encodeURIComponent("oauth_consumer_key="+consumerKey+
+                                    "&oauth_nonce="+oauth_nounce+"&oauth_signature_method=HMAC-SHA256"+
+                                    "&oauth_timestamp="+oauth_timestamp);
+
+  var oauth_sig=Utilities.base64Encode(Utilities.computeHmacSignature(Utilities.MacAlgorithm.HMAC_SHA_256, str, consumerSecret));
+  //Please note following needs to be patched in Woocommerce
+  /*
+  --- wp-content/plugins/woocommerce-orig/includes/api/v1/class-wc-api-authentication.php 2014-09-25 02:45:54.000000000 +0000
++++ wp-content/plugins/woocommerce/includes/api/v1/class-wc-api-authentication.php      2014-10-01 07:02:22.947144339 +0000
+@@ -205,7 +205,7 @@
+                $base_request_uri = rawurlencode( untrailingslashit( get_woocommerce_api_url( '' ) ) . WC()->api->server->path );
+
+                // get the signature provided by the consumer and remove it from the parameters prior to checking the signature
+-               $consumer_signature = rawurldecode( $params['oauth_signature'] );
++               $consumer_signature = str_replace(" ", "+", rawurldecode( $params['oauth_signature'] ));
+                unset( $params['oauth_signature'] );
+
+                // remove filters and convert them from array to strings to void normalize issues
+
+  
+  
+  */
+
+  var finalurl=baseurl+endpoints+"?oauth_consumer_key="+consumerKey+
+                                    "&oauth_timestamp="+oauth_timestamp+
+                                    "&oauth_nonce="+oauth_nounce+
+                                    "&oauth_signature_method="+oauth_signaturemethod+
+                                    "&oauth_signature="+oauth_sig;
+
+                                    
+  var result = UrlFetchApp.fetch(finalurl);
+  loadData(result.getContentText());
+  
+
+}
